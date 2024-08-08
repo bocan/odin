@@ -64,7 +64,12 @@ locals {
   vpc_cidr = "10.2.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
-  user_data = file("user_data.sh")
+  #user_data = file("user_data.sh")
+
+  user_data = templatefile("${path.module}/user_data.sh", {
+    GITHUB_USER  = var.github_user
+    GITHUB_TOKEN = var.github_token
+  })
 
   tags = {
     "kubernetes.io/cluster/k0s" = "owned"

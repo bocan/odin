@@ -1,4 +1,9 @@
 repos:
+- repo: https://github.com/gitleaks/gitleaks
+  rev: v8.18.4
+  hooks:
+    - id: gitleaks
+      args: ['--verbose']
 - repo: https://github.com/Lucas-C/pre-commit-hooks
   rev: v1.5.5
   hooks:
@@ -6,6 +11,9 @@ repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.6.0
   hooks:
+    - id: check-yaml
+    - id: check-added-large-files
+    - id: detect-aws-credentials
     - id: trailing-whitespace
     - id: end-of-file-fixer
     - id: mixed-line-ending
@@ -19,12 +27,12 @@ repos:
     - id: terraform_fmt
       args:
         - --hook-config=--tf-path=tofu
+    - id: terraform_validate
+      args:
+        - --hook-config=--tf-path=tofu
     - id: terraform_checkov
       args:
         - --args=--download-external-modules false
         - --args=--soft-fail-on MEDIUM
         - --args=--skip-check CKV_TF_1
         - --args=--skip-check CKV_TF_2
-    - id: terraform_validate
-      args:
-        - --hook-config=--tf-path=tofu
