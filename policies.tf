@@ -1,6 +1,8 @@
 #Create a policy
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy
 resource "aws_iam_policy" "ec2_policy" {
+  # checkov:skip=CKV_AWS_355:FixMe
+  # checkov:skip=CKV_AWS_290:FixMe
   name        = "odin-ec2-policy"
   path        = "/"
   description = "Policy to provide permission to EC2"

@@ -631,5 +631,5 @@ output "ec2_instance_availability_zone" {
 }
 
 output "ami_details" {
-  value = data.aws_ami.debian.*
+  value = data.aws_ami.debian.image_id
 }

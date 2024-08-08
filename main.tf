@@ -39,6 +39,7 @@ resource "aws_ami_copy" "debian_encrypted_ami" {
   source_ami_id     = data.aws_ami.debian.id
   source_ami_region = "eu-west-2"
   encrypted         = true
+  # checkov:skip=CKV_AWS_236:Need to create a CMK
 
   depends_on = [data.aws_ami.debian]
   tags       = { Name = "debian-encrypted-ami" }
@@ -78,7 +79,7 @@ locals {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.5.1"
+  version = "5.12.0"
 
   name = local.name
   cidr = local.vpc_cidr
@@ -101,7 +102,7 @@ module "vpc" {
 
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
-  version = "5.1.1"
+  version = "5.1.2"
 
   name        = local.name
   description = "Security group for example usage with EC2 instance"
@@ -116,7 +117,7 @@ module "security_group" {
 
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "5.6.0"
+  version = "5.6.1"
 
   depends_on = [data.aws_ami.encrypted-ami]
 

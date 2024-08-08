@@ -1,0 +1,6 @@
+tfsec 1.28.10
+pre-commit 3.8.0
+opentofu 1.8.1
+jq 1.6
+checkov 3.2.219
+terraform-docs 0.18.0
