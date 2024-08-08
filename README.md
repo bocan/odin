@@ -1,3 +1,48 @@
+## About
+
+This Tofu / Terraform repo builds an a single AWS instance for my containerised platform running in a single Spot instance. AWS can stop it, delete it, whatever - because the user_data sets everything up from scratch and any important data is kept on an external volume.
+
+It basically looks like this:
+
+* A dedicated VPC, and [EC2 Spot instance](https://aws.amazon.com/ec2/spot/) spun up with [Terraform](https://www.terraform.io/) ([OpenTofu](https://opentofu.org/)) running a [Debian Sid](https://www.debian.org/releases/sid/) AMI that I've encrypted.
+* The root volume is small (8G) and remains mostly untouched with only enough changes to the root volume to enable it to reboot without needing any configuration changes.
+* All important persistent data and configuration lives on a separate encrypted volume mounted at /volume
+
+* Everything important is running as a Docker container via Docker Compose.  There are 5 major Docker containers that need to remain up:
+
+  * [certbot](https://certbot.eff.org/):  Mostly sleeping for 12 hours at a time but then checking for certs that need to be renewed
+  * [nginx](https://www.nginx.com/): Powers all the static and tool sites.
+  * [php](https://www.php.net/releases/8.0/en.php): Has the same mounts as nginx and runs any PHP needed
+  * [mariadb](https://mariadb.org/): Powers any needed mysql/mariadb databases.
+  * [gitlab](https://about.gitlab.com/): powers Gitlab separately.  nginx reverse proxies it.
+
+* All Powering These Sites:
+
+  * [My home page](https://chris.funderburg.me), a static site built every 5 minutes from Git via [Hugo](https://gohugo.io/).
+  * A Wordpress site powering a personal archive. (nginx and php)
+  * [bocan.dev](https://bocan.dev) - A 1 page CV site. (just nginx)
+  * [cfunder.me](https://cfunder.me/) - A personal URL shortener. (nginx and php)
+  * My personal blog (nginx and hugo), and tooling hidden underneath:
+    * A personal photo gallery powered by [Piwigo](https://piwigo.org/).
+    * A [webapp](https://chris.funderburg.me/advice) that gives quotes and advice.
+    * My self hosted [Nextcloud](https://nextcloud.com/) engine.
+    * A [time dashboard](https://chris.funderburg.me/time.php) I built to amuse myself.
+  * My [business site](https://cloudcauldron.io) (just nginx) - but soon to be my business blog (nginx and hugo)
+  * My [family tree site](https://tree.funderburg.me/) (just nginx)
+
+* There are 3 crontab jobs executing commands inside the docker containers:
+
+  * Every 15 minutes, exec into php and update my [TTRSS](https://tt-rss.org/) site to get check RSS feeds.
+  * Every 31 minutes, exec into php and run the Nextcloud cron processing.
+  * Every 5 minutes, use Git to pull all configuration from Github, then exec into the [Hugo](https://gohugo.io/) container and generate the static blogs.
+
+* Issues I still need to fix:
+
+  * I'd like to swap the AMI and disk encryption to use a CMK.
+  * The Github repo that controls all of it stores the web certificates so I can't make it public yet.  I need to split that piece out.
+  * The big external volume only has 1 snapshot and it's not automated yet.
+
+
 ## Requirements
 
 | Name | Version |
@@ -37,7 +82,10 @@
 
 ## Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_github_token"></a> [github\_token](#input\_github\_token) | The github token I use to let Hugo write back to Github. | `string` | n/a | yes |
+| <a name="input_github_user"></a> [github\_user](#input\_github\_user) | The github user I use to let Hugo write back to Github. | `string` | n/a | yes |
 
 ## Outputs
 
