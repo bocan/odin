@@ -33,7 +33,7 @@ systemctl daemon-reload
 swapon -a
 
 apt update
-apt install lsb-release gnupg2 apt-transport-https ca-certificates curl software-properties-common wget default-mysql-client rsync cron git fail2ban jq strace pre-commit hugo aspell  -y
+apt install lsb-release gnupg2 apt-transport-https ca-certificates curl software-properties-common wget default-mysql-client rsync cron git fail2ban jq strace pre-commit hugo aspell ipset -y
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor > /etc/apt/trusted.gpg.d/debian.gpg
 add-apt-repository -y "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian bookworm stable"
 
@@ -55,6 +55,7 @@ echo '*/15 * * * * docker exec --user www-data php /usr/local/bin/php /var/www/c
 */31 * * * * docker exec --user 1000 php /usr/local/bin/php /var/www/chris.funderburg.me/nextcloud/cron.php
 */5 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-funderburg:/src  techstack-hugo  --environment production
 */6 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-cloudcaulron:/src  techstack-hugo  --environment production
+1 * * * * docker system prune -f
 ' | crontab -
 
 echo '

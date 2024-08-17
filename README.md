@@ -42,7 +42,6 @@ It basically looks like this:
   * The Github repo that controls all of it stores the web certificates so I can't make it public yet.  I need to split that piece out.
   * The big external volume only has 1 snapshot and it's not automated yet.
 
-
 ## Requirements
 
 | Name | Version |
@@ -54,13 +53,14 @@ It basically looks like this:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.61.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.63.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_ec2_instance"></a> [ec2\_instance](#module\_ec2\_instance) | terraform-aws-modules/ec2-instance/aws | 5.6.1 |
+| <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.1.0 |
 | <a name="module_security_group"></a> [security\_group](#module\_security\_group) | terraform-aws-modules/security-group/aws | 5.1.2 |
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 5.12.0 |
 
@@ -78,14 +78,17 @@ It basically looks like this:
 | [aws_ami.debian](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_ami.encrypted-ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_ebs_volume.ebs_volume](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ebs_volume) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_ami_override"></a> [ami\_override](#input\_ami\_override) | The Debian Sid AMI can be updated too fast.  Set this if you don't want to update it. | `string` | `null` | no |
 | <a name="input_github_token"></a> [github\_token](#input\_github\_token) | The github token I use to let Hugo write back to Github. | `string` | n/a | yes |
 | <a name="input_github_user"></a> [github\_user](#input\_github\_user) | The github user I use to let Hugo write back to Github. | `string` | n/a | yes |
+| <a name="input_users_for_key"></a> [user\_for\_key](#input\_user\_for\_key) | The users or sts roles to give access to the customer managed key | `list(string)` | `null` | no |
 
 ## Outputs
 
