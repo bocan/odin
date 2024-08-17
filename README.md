@@ -4,17 +4,24 @@ This Tofu / Terraform repo builds an a single AWS instance for my containerised 
 
 It basically looks like this:
 
-* A dedicated VPC, and [EC2 Spot instance](https://aws.amazon.com/ec2/spot/) spun up with [Terraform](https://www.terraform.io/) ([OpenTofu](https://opentofu.org/)) running a [Debian Sid](https://www.debian.org/releases/sid/) AMI that I've encrypted.
+* A dedicated VPC, and [EC2 Spot instance](https://aws.amazon.com/ec2/spot/) spun up with [Terraform](https://www.terraform.io/) / ([OpenTofu](https://opentofu.org/)) running a [Debian Sid](https://www.debian.org/releases/sid/) AMI that I've encrypted with a customer managed key.
 * The root volume is small (8G) and remains mostly untouched with only enough changes to the root volume to enable it to reboot without needing any configuration changes.
-* All important persistent data and configuration lives on a separate encrypted volume mounted at /volume
+* All important persistent data and configuration lives on a separate encrypted volume mounted at /volume. This terraform project connects the instance to it, but doesn't manage it directly.
 
 * Everything important is running as a Docker container via Docker Compose.  There are 5 major Docker containers that need to remain up:
 
   * [certbot](https://certbot.eff.org/):  Mostly sleeping for 12 hours at a time but then checking for certs that need to be renewed
   * [nginx](https://www.nginx.com/): Powers all the static and tool sites.
-  * [php](https://www.php.net/releases/8.0/en.php): Has the same mounts as nginx and runs any PHP needed
+  * [php](https://www.php.net/releases/8.0/en.php): Has the same mounts as nginx and runs any PHP needed.  I self compile this as PHP's a monstrocity.
   * [mariadb](https://mariadb.org/): Powers any needed mysql/mariadb databases.
-  * [gitlab](https://about.gitlab.com/): powers Gitlab separately.  nginx reverse proxies it.
+  * [gitea](https://about.gitea.com/): A place I intend to move most of my private repos into. Kind of like Gitlab, but not as bloated with crap.
+
+* I also have a fully monitoring / metrics / observability stack running:
+
+  * prometheus: The metrics engine.
+  * grafana : A virtual pane of glass to view all the metrics.
+  * cadvisor:
+  * node-exporter : Scrapes my instance's metrics.
 
 * All Powering These Sites:
 
