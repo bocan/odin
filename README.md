@@ -18,10 +18,10 @@ It basically looks like this:
 
 * I also have a fully monitoring / metrics / observability stack running:
 
-  * prometheus: The metrics engine.
-  * grafana : A virtual pane of glass to view all the metrics.
-  * cadvisor:
-  * node-exporter : Scrapes my instance's metrics.
+  * [prometheus](https://prometheus.io/): The metrics engine.
+  * [grafana](https://grafana.com/) : A virtual pane of glass to view all the metrics.
+  * [cadvisor](https://github.com/google/cadvisor): Analyzes resource usage and performance characteristics of running containers.
+  * [node-exporter](https://github.com/prometheus/node_exporter) : Scrapes and exports my instance's metrics.
 
 * All Powering These Sites:
 
