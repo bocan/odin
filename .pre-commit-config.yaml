@@ -4,10 +4,6 @@ repos:
   hooks:
     - id: gitleaks
       args: ['--verbose']
-- repo: https://github.com/Lucas-C/pre-commit-hooks
-  rev: v1.5.5
-  hooks:
-    - id: remove-crlf
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.6.0
   hooks:
@@ -19,7 +15,7 @@ repos:
     - id: mixed-line-ending
       args: ['--fix=lf']
 - repo: https://github.com/antonbabenko/pre-commit-terraform
-  rev: v1.92.1
+  rev: v1.92.2
   hooks:
     - id: terraform_docs
       args:
@@ -35,4 +31,3 @@ repos:
         - --args=--download-external-modules false
         - --args=--soft-fail-on MEDIUM
         - --args=--skip-check CKV_TF_1
-        - --args=--skip-check CKV_TF_2

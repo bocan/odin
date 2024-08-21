@@ -6,6 +6,13 @@ data "aws_availability_zones" "available" {}
 
 data "aws_caller_identity" "current" {}
 
+###############################################################################
+# AMI Building
+###############################################################################
+
+#
+# Find the latest Debian Sid Public AMI
+#
 data "aws_ami" "debian" {
   most_recent = true
   owners      = ["903794441882"]
@@ -21,6 +28,10 @@ data "aws_ami" "debian" {
   }
 }
 
+#
+# Find my pre-existing storage volume
+# to keep permanent data on.
+#
 data "aws_ebs_volume" "ebs_volume" {
   most_recent = true
 
@@ -35,6 +46,10 @@ data "aws_ebs_volume" "ebs_volume" {
   }
 }
 
+#
+# Make an encrypted AMI with the non-encrypted public AMI.
+# Use a customer managed key.
+#
 resource "aws_ami_copy" "debian_encrypted_ami" {
   name              = "debian-encrypted-ami"
   description       = "An encrypted root ami based off ${data.aws_ami.debian.id}"
@@ -47,6 +62,9 @@ resource "aws_ami_copy" "debian_encrypted_ami" {
   tags       = { Name = "debian-encrypted-ami" }
 }
 
+#
+# IIRC, I had to do this as the above isn't instantly ready.
+#
 data "aws_ami" "encrypted-ami" {
   most_recent = true
 
@@ -59,6 +77,9 @@ data "aws_ami" "encrypted-ami" {
   owners = ["self"]
 }
 
+###############################################################################
+# Locals
+###############################################################################
 locals {
   name   = "ex-${basename(path.cwd)}"
   region = "eu-west-2"
@@ -71,6 +92,7 @@ locals {
     GITHUB_TOKEN = var.github_token
   })
 
+  # TODO - I don't need this.
   tags = {
     "kubernetes.io/cluster/k0s" = "owned"
   }
@@ -79,10 +101,9 @@ locals {
 
 
 
-################################################################################
+###############################################################################
 # VPC Module
-################################################################################
-
+###############################################################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.12.0"
@@ -106,6 +127,9 @@ module "vpc" {
   tags = local.tags
 }
 
+###############################################################################
+# Security Group for the EC2 Instance
+###############################################################################
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "5.1.2"
@@ -121,6 +145,9 @@ module "security_group" {
   tags = local.tags
 }
 
+###############################################################################
+# EC2 Module
+###############################################################################
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "5.6.1"
@@ -153,6 +180,11 @@ module "ec2_instance" {
 
   tags               = local.tags
   enable_volume_tags = true
+
+  # The root drive should remain small.
+  # The idea here is that the root partitions get updated,
+  # but little changes beyond that.
+  # Data that needs to persist, should go to /volume
   root_block_device = [
     {
       encrypted   = true
@@ -162,7 +194,9 @@ module "ec2_instance" {
   ]
 }
 
-
+###############################################################################
+# Elastic IP
+###############################################################################
 resource "aws_eip" "bar" {
   domain = "vpc"
 
@@ -172,6 +206,9 @@ resource "aws_eip" "bar" {
   tags = merge(local.tags, { Name = "${local.name}-eip" })
 }
 
+###############################################################################
+# Attach the pre-made large volume for persistant data.
+###############################################################################
 resource "aws_volume_attachment" "this" {
   device_name = "/dev/sdh"
   volume_id   = data.aws_ebs_volume.ebs_volume.id
@@ -179,6 +216,9 @@ resource "aws_volume_attachment" "this" {
 }
 
 
+###############################################################################
+# Create a customer managed key with the KMS Module
+###############################################################################
 module "kms" {
   source  = "terraform-aws-modules/kms/aws"
   version = "3.1.0"
