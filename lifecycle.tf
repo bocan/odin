@@ -29,7 +29,7 @@ data "aws_iam_policy_document" "dlm_lifecycle" {
       "ec2:DescribeSnapshots",
     ]
 
-    resources = ["arn:aws:sts:${data.aws_caller_identity.current.account_id}:*"]
+    resources = ["arn:aws:sts::${data.aws_caller_identity.current.account_id}:*"]
   }
 
   statement {
