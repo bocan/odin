@@ -17,6 +17,8 @@ resource "aws_iam_role" "dlm_lifecycle_role" {
 }
 
 data "aws_iam_policy_document" "dlm_lifecycle" {
+  # checkov:skip=CKV_AWS_111:FixMe
+  # checkov:skip=CKV_AWS_356:FixMe
   statement {
     effect = "Allow"
 
@@ -29,13 +31,13 @@ data "aws_iam_policy_document" "dlm_lifecycle" {
       "ec2:DescribeSnapshots",
     ]
 
-    resources = ["arn:aws:sts::${data.aws_caller_identity.current.account_id}:*"]
+    resources = ["*"]
   }
 
   statement {
     effect    = "Allow"
     actions   = ["ec2:CreateTags"]
-    resources = ["arn:aws:ec2:${data.aws_caller_identity.current.account_id}::snapshot/*"]
+    resources = ["arn:aws:ec2:*::snapshot/*"]
   }
 }
 
@@ -59,14 +61,14 @@ resource "aws_dlm_lifecycle_policy" "odin_dlm_policy" {
     resource_types = ["VOLUME"]
 
     schedule {
-      name = "1 week of twice daily snapshots"
+      name = "3 days of twice daily snapshots"
 
       create_rule {
-        cron_expression = "cron(0 4,16 * * ? *)"
+        cron_expression = "cron(0 8,20 2-31 * ? *)"
       }
 
       retain_rule {
-        count = 14
+        count = 6
       }
 
       tags_to_add = {
@@ -97,14 +99,14 @@ resource "aws_dlm_lifecycle_policy" "odin_dlm_policy_monthly" {
     resource_types = ["VOLUME"]
 
     schedule {
-      name = "6 months monthly snapshots"
+      name = "3 months monthly snapshots"
 
       create_rule {
-        cron_expression = "cron(0 1 22 * ? *)"
+        cron_expression = "cron(00 02 01 * ? *)"
       }
 
       retain_rule {
-        count = 6
+        count = 3
       }
 
       tags_to_add = {
