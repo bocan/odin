@@ -21,3 +21,9 @@ variable "users_for_key" {
   description = "The users or sts roles to give access to the customer managed key"
   default     = null
 }
+
+variable "passphrase" {
+  type        = string
+  description = "Password to encrypt state"
+  sensitive   = true
+}
