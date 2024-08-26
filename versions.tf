@@ -1,6 +1,12 @@
 terraform {
   required_version = ">= 1.0"
 
+  backend "s3" {
+    bucket         = "odin-tfstate"
+    key            = "states/terraform.tfstate"
+    dynamodb_table = "odin-tf-state"
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"

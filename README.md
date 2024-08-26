@@ -60,7 +60,7 @@ It basically looks like this:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.63.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.64.0 |
 
 ## Modules
 
@@ -76,10 +76,14 @@ It basically looks like this:
 | Name | Type |
 |------|------|
 | [aws_ami_copy.debian_encrypted_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ami_copy) | resource |
+| [aws_dlm_lifecycle_policy.odin_dlm_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dlm_lifecycle_policy) | resource |
+| [aws_dlm_lifecycle_policy.odin_dlm_policy_monthly](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dlm_lifecycle_policy) | resource |
 | [aws_eip.bar](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
 | [aws_iam_instance_profile.ec2_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_policy.ec2_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_role.dlm_lifecycle_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.ec2_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy.dlm_lifecycle](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy_attachment.custom](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_volume_attachment.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/volume_attachment) | resource |
 | [aws_ami.debian](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
@@ -87,6 +91,8 @@ It basically looks like this:
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_ebs_volume.ebs_volume](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ebs_volume) | data source |
+| [aws_iam_policy_document.assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.dlm_lifecycle](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ## Inputs
 
@@ -95,7 +101,8 @@ It basically looks like this:
 | <a name="input_ami_override"></a> [ami\_override](#input\_ami\_override) | The Debian Sid AMI can be updated too fast.  Set this if you don't want to update it. | `string` | `null` | no |
 | <a name="input_github_token"></a> [github\_token](#input\_github\_token) | The github token I use to let Hugo write back to Github. | `string` | n/a | yes |
 | <a name="input_github_user"></a> [github\_user](#input\_github\_user) | The github user I use to let Hugo write back to Github. | `string` | n/a | yes |
-| <a name="input_users_for_key"></a> [user\_for\_key](#input\_user\_for\_key) | The users or sts roles to give access to the customer managed key | `list(string)` | `null` | no |
+| <a name="input_passphrase"></a> [passphrase](#input\_passphrase) | Password to encrypt state | `string` | n/a | yes |
+| <a name="input_users_for_key"></a> [users\_for\_key](#input\_users\_for\_key) | The users or sts roles to give access to the customer managed key | `list(string)` | `null` | no |
 
 ## Outputs
 

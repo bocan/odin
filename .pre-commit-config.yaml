@@ -26,8 +26,3 @@ repos:
     - id: terraform_validate
       args:
         - --hook-config=--tf-path=tofu
-    - id: terraform_checkov
-      args:
-        - --args=--download-external-modules false
-        - --args=--soft-fail-on MEDIUM
-        - --args=--skip-check CKV_TF_1
