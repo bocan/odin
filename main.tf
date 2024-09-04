@@ -106,7 +106,7 @@ locals {
 ###############################################################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.12.0"
+  version = "5.13.0"
 
   name = local.name
   cidr = local.vpc_cidr
@@ -132,7 +132,7 @@ module "vpc" {
 ###############################################################################
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
-  version = "5.1.2"
+  version = "5.2.0"
 
   name        = local.name
   description = "Security group for example usage with EC2 instance"
@@ -150,7 +150,7 @@ module "security_group" {
 ###############################################################################
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "5.6.1"
+  version = "5.7.0"
 
   depends_on = [data.aws_ami.encrypted-ami]
 
