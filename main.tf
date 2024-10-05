@@ -1,134 +1,5 @@
-provider "aws" {
-  region = local.region
-}
-
-data "aws_availability_zones" "available" {}
-
-data "aws_caller_identity" "current" {}
-
 ###############################################################################
-# AMI Building
-###############################################################################
-
-#
-# Find the latest Debian Sid Public AMI
-#
-data "aws_ami" "debian" {
-  most_recent = true
-  owners      = ["903794441882"]
-
-  filter {
-    name   = "name"
-    values = ["debian-sid-amd64-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
-#
-# Find my pre-existing storage volume
-# to keep permanent data on.
-#
-data "aws_ebs_volume" "ebs_volume" {
-  most_recent = true
-
-  filter {
-    name   = "volume-type"
-    values = ["gp3"]
-  }
-
-  filter {
-    name   = "tag:Name"
-    values = ["odin-data"]
-  }
-}
-
-#
-# Make an encrypted AMI with the non-encrypted public AMI.
-# Use a customer managed key.
-#
-resource "aws_ami_copy" "debian_encrypted_ami" {
-  name              = "debian-encrypted-ami"
-  description       = "An encrypted root ami based off ${data.aws_ami.debian.id}"
-  source_ami_id     = data.aws_ami.debian.id
-  source_ami_region = "eu-west-2"
-  encrypted         = true
-  kms_key_id        = module.kms.key_arn
-
-  depends_on = [data.aws_ami.debian]
-  tags       = { Name = "debian-encrypted-ami" }
-}
-
-#
-# IIRC, I had to do this as the above isn't instantly ready.
-#
-data "aws_ami" "encrypted-ami" {
-  most_recent = true
-
-  depends_on = [aws_ami_copy.debian_encrypted_ami]
-  filter {
-    name   = "name"
-    values = [aws_ami_copy.debian_encrypted_ami.name]
-  }
-
-  owners = ["self"]
-}
-
-###############################################################################
-# Locals
-###############################################################################
-locals {
-  name   = "ex-${basename(path.cwd)}"
-  region = "eu-west-2"
-
-  vpc_cidr = "10.2.0.0/16"
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
-
-  user_data = templatefile("${path.module}/user_data.sh", {
-    GITHUB_USER  = var.github_user
-    GITHUB_TOKEN = var.github_token
-  })
-
-  # TODO - I don't need this.
-  tags = {
-    "kubernetes.io/cluster/k0s" = "owned"
-  }
-  me = var.users_for_key
-}
-
-
-
-###############################################################################
-# VPC Module
-###############################################################################
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.13.0"
-
-  name = local.name
-  cidr = local.vpc_cidr
-
-  azs             = local.azs
-  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
-  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 4)]
-
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-
-  enable_nat_gateway = false
-  enable_flow_log    = false
-
-  enable_ipv6                                   = false
-  public_subnet_assign_ipv6_address_on_creation = false
-
-  tags = local.tags
-}
-
-###############################################################################
-# Security Group for the EC2 Instance
+# Security Group for the Webserver EC2 Instance (odin)
 ###############################################################################
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
@@ -146,7 +17,37 @@ module "security_group" {
 }
 
 ###############################################################################
-# EC2 Module
+# Security Group for the Mail Server (freyja)
+###############################################################################
+module "security_group_freyja" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "5.2.0"
+
+  name        = "ex-freyja"
+  description = "Security group for example usage with EC2 instance"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_rules       = ["smtp-tcp", "smtp-submission-587-tcp", "smtps-465-tcp", "all-icmp", "ssh-tcp"]
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 993
+      to_port     = 993
+      protocol    = "tcp"
+      description = "Imaps"
+      cidr_blocks = "0.0.0.0/0"
+    },
+  ]
+
+  egress_rules = ["all-all"]
+
+  tags = local.tags
+}
+
+
+###############################################################################
+# EC2 Webserver Module (odin)
 ###############################################################################
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
@@ -175,7 +76,7 @@ module "ec2_instance" {
   user_data_base64 = base64encode(local.user_data)
 
   metadata_options = {
-    http_tokens = "required"
+    http_tokens = "optional"
   }
 
   tags               = local.tags
@@ -195,7 +96,50 @@ module "ec2_instance" {
 }
 
 ###############################################################################
-# Elastic IP
+# EC2 Mail Server Module (freyja)
+###############################################################################
+module "ec2_instance_freyja" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "5.7.0"
+
+  depends_on = [data.aws_ami.encrypted-ami]
+
+  name = "ex-freyja-instance"
+
+  ami                         = coalesce(var.ami_override, data.aws_ami.encrypted-ami.id)
+  instance_type               = "t3.medium"
+  key_name                    = "freya"
+  availability_zone           = element(module.vpc.azs, 0)
+  subnet_id                   = element(module.vpc.public_subnets, 0)
+  vpc_security_group_ids      = [module.security_group_freyja.security_group_id]
+  associate_public_ip_address = true
+  iam_instance_profile        = "odin-ec2-profile"
+
+  user_data_base64 = base64encode(local.user_data)
+
+  metadata_options = {
+    http_tokens = "optional"
+  }
+
+  tags               = local.tags
+  enable_volume_tags = false
+
+  # The root drive should remain small.
+  # The idea here is that the root partitions get updated,
+  # but little changes beyond that.
+  # Data that needs to persist, should go to /volume
+  root_block_device = [
+    {
+      encrypted   = true
+      volume_type = "gp3"
+      volume_size = 8
+    },
+  ]
+}
+
+
+###############################################################################
+# Elastic IP for Webserver (odin)
 ###############################################################################
 resource "aws_eip" "bar" {
   domain = "vpc"
@@ -207,7 +151,20 @@ resource "aws_eip" "bar" {
 }
 
 ###############################################################################
-# Attach the pre-made large volume for persistant data.
+# Elastic IP for Mail Server (freyja)
+###############################################################################
+resource "aws_eip" "foo" {
+  domain = "vpc"
+
+  instance                  = module.ec2_instance_freyja.id
+  associate_with_private_ip = module.ec2_instance_freyja.private_ip
+
+  tags = merge(local.tags, { Name = "ex-freyja-eip" })
+}
+
+
+###############################################################################
+# Attach the pre-made large volume for persistant data. (odin)
 ###############################################################################
 resource "aws_volume_attachment" "this" {
   device_name = "/dev/sdh"
@@ -215,27 +172,20 @@ resource "aws_volume_attachment" "this" {
   instance_id = module.ec2_instance.spot_instance_id
 }
 
-
 ###############################################################################
-# Create a customer managed key with the KMS Module
+# Attach the pre-made large volume for persistant data. (freyja)
 ###############################################################################
-module "kms" {
-  source  = "terraform-aws-modules/kms/aws"
-  version = "3.1.0"
+resource "aws_volume_attachment" "this2" {
+  device_name = "/dev/sdh"
+  volume_id   = data.aws_ebs_volume.ebs_volume_freyja.id
+  instance_id = module.ec2_instance_freyja.id
+}
 
-  description              = "AMI Encryption Key"
-  customer_master_key_spec = "SYMMETRIC_DEFAULT"
 
-  # Aliases
-  aliases                 = ["odin/ami-encryption-key"]
-  aliases_use_name_prefix = true
-
-  key_owners = local.me
-
-  # I'm hijacking this for spot instances.
-  key_service_roles_for_autoscaling = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot"]
-
-  tags = {
-    Terraform = "true"
-  }
+resource "aws_route53_record" "mailserverA" {
+  zone_id = "ZJLY408K7DRUA"
+  ttl     = "300"
+  name    = "mail.cloudcauldron.io"
+  type    = "A"
+  records = [aws_eip.foo.public_ip]
 }

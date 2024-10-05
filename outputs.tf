@@ -633,3 +633,8 @@ output "ec2_instance_availability_zone" {
 output "ami_details" {
   value = data.aws_ami.debian.image_id
 }
+
+output "ptr_record" {
+  description = "public dns"
+  value       = aws_eip.foo.ptr_record
+}

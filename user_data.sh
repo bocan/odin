@@ -7,6 +7,9 @@ SPOT_REQ_ID=$(aws --region $REGION ec2 describe-instances --instance-ids "$INSTA
 if [ "$SPOT_REQ_ID" != "None" ] ; then
   TAGS=$(aws --region $REGION ec2 describe-spot-instance-requests --spot-instance-request-ids "$SPOT_REQ_ID" --query 'SpotInstanceRequests[0].Tags')
   aws --region $REGION ec2 create-tags --resources "$INSTANCE_ID" --tags "$TAGS"
+  hostnamectl set-hostname odin
+else
+  hostnamectl set-hostname freyja
 fi
 #aws ec2 modify-instance-metadata-options --instance-id $INSTANCE_ID --http-tokens required
 
@@ -33,7 +36,21 @@ systemctl daemon-reload
 swapon -a
 
 apt update
-apt install lsb-release gnupg2 apt-transport-https ca-certificates curl software-properties-common wget default-mysql-client rsync cron git fail2ban jq strace pre-commit hugo aspell ipset -y
+
+if [ "$SPOT_REQ_ID" != "None" ] ; then
+  apt install nftables lsb-release gnupg2 apt-transport-https ca-certificates curl software-properties-common wget default-mysql-client rsync cron git fail2ban jq strace pre-commit hugo aspell ipset -y
+else
+  apt install nftables lsb-release gnupg2 apt-transport-https ca-certificates curl software-properties-common wget rsync cron git fail2ban jq strace pre-commit ipset net-tools dnsutils -y
+  apt purge exim4-base exim4-config exim4-daemon-light -y
+
+  echo '
+[Resolve]
+Cache=yes
+CacheFromLocalhost=yes' > /etc/systemd/resolved.conf
+  systemctl  restart systemd-resolved.service
+
+fi
+
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor > /etc/apt/trusted.gpg.d/debian.gpg
 add-apt-repository -y "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian bookworm stable"
 
@@ -51,12 +68,17 @@ systemctl start docker
 
 echo "sudo su -" > ~admin/.profile
 
+if [ "$SPOT_REQ_ID" != "None" ] ; then
 echo '*/15 * * * * docker exec --user www-data php /usr/local/bin/php /var/www/chris.funderburg.me/ttrss/update.php --feeds
 */31 * * * * docker exec --user 1000 php /usr/local/bin/php /var/www/chris.funderburg.me/nextcloud/cron.php
 */5 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-funderburg:/src  techstack-hugo  --environment production
 */6 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-cloudcauldron:/src  techstack-hugo  --environment production
 1 * * * * docker system prune -f
 ' | crontab -
+else
+echo '1 * * * * docker system prune -f
+' | crontab -
+fi
 
 echo '
 machine github.com
