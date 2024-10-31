@@ -33,8 +33,10 @@ then
 /swapfile      swap    swap defaults 0 0 " >> /etc/fstab
 fi
 
-
-
+# I'm behind AWS security groups so it handles the main firewalling
+# at the moment.  This is just a geoblock at the server level.
+# An example script lives at:
+# https://gist.github.com/bocan/ff82cbcbdc848aa34ff015e23ed866bf
 echo '[Unit]
 Description = Firewall Startup Script
 After = network.target volume.mount
