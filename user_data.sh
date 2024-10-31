@@ -32,7 +32,23 @@ then
   echo " /dev/nvme1n1p1 /volume ext4 rw 0 1
 /swapfile      swap    swap defaults 0 0 " >> /etc/fstab
 fi
+
+
+
+echo '[Unit]
+Description = Firewall Startup Script
+After = network.target volume.mount
+
+[Service]
+Type = simple
+User = root
+ExecStart = /volume/firewall/build
+
+[Install]
+WantedBy = multi-user.target' > /etc/systemd/system/firewall.service
+
 systemctl daemon-reload
+
 swapon -a
 
 apt update
@@ -53,6 +69,9 @@ fi
 
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor > /etc/apt/trusted.gpg.d/debian.gpg
 add-apt-repository -y "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian bookworm stable"
+
+systemctl enable firewall
+systemctl start firewall
 
 mkdir -p /etc/docker
 echo '{
