@@ -95,9 +95,11 @@ echo '*/15 * * * * docker exec --user www-data php /usr/local/bin/php /var/www/c
 */5 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-funderburg:/src  techstack-hugo  --environment production
 */6 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-cloudcauldron:/src  techstack-hugo  --environment production
 1 * * * * docker system prune -f
+0 0 * * * journalctl --vacuum-time=1d
 ' | crontab -
 else
 echo '1 * * * * docker system prune -f
+0 0 * * * journalctl --vacuum-time=1d
 ' | crontab -
 fi
 
