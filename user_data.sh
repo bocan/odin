@@ -113,6 +113,8 @@ password ${GITHUB_TOKEN}
 
 echo '
 [DEFAULT]
+logtarget = SYSTEMD-JOURNAL
+
 bantime = 24h
 
 # default ban time using special formula, default it is banTime * 1, 2, 4, 8, 16, 32...
