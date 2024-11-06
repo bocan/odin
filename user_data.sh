@@ -92,8 +92,8 @@ echo "sudo su -" > ~admin/.profile
 if [ "$SPOT_REQ_ID" != "None" ] ; then
 echo '*/15 * * * * docker exec --user www-data php /usr/local/bin/php /var/www/chris.funderburg.me/ttrss/update.php --feeds
 */31 * * * * docker exec --user 1000 php /usr/local/bin/php /var/www/chris.funderburg.me/nextcloud/cron.php
-*/5 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-funderburg:/src  techstack-hugo  --environment production
-*/6 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-cloudcauldron:/src  techstack-hugo  --environment production
+*/5 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-funderburg:/src bocan/hugo:latest --environment production
+*/6 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-cloudcauldron:/src bocan/hugo:latest --environment production
 1 * * * * docker system prune -f
 0 0 * * * journalctl --vacuum-time=1d
 ' | crontab -

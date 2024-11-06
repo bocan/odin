@@ -51,7 +51,7 @@ module "security_group_freyja" {
 ###############################################################################
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "5.7.0"
+  version = "5.7.1"
 
   depends_on = [data.aws_ami.encrypted-ami]
 
@@ -72,6 +72,8 @@ module "ec2_instance" {
   spot_type                           = "persistent"
   spot_instance_interruption_behavior = "stop"
   # End spot request specific attributes
+
+  ipv6_address_count = 1
 
   user_data_base64 = base64encode(local.user_data)
 
@@ -100,7 +102,7 @@ module "ec2_instance" {
 ###############################################################################
 module "ec2_instance_freyja" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "5.7.0"
+  version = "5.7.1"
 
   depends_on = [data.aws_ami.encrypted-ami]
 

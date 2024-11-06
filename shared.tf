@@ -121,7 +121,7 @@ locals {
 ###############################################################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.13.0"
+  version = "5.15.0"
 
   name = local.name
   cidr = local.vpc_cidr
@@ -136,8 +136,11 @@ module "vpc" {
   enable_nat_gateway = false
   enable_flow_log    = false
 
-  enable_ipv6                                   = false
-  public_subnet_assign_ipv6_address_on_creation = false
+  enable_ipv6                                   = true
+  public_subnet_assign_ipv6_address_on_creation = true
+
+  public_subnet_ipv6_prefixes  = [0, 1, 2]
+  private_subnet_ipv6_prefixes = [3, 4, 5]
 
   tags = local.tags
 }
@@ -147,7 +150,7 @@ module "vpc" {
 ###############################################################################
 module "kms" {
   source  = "terraform-aws-modules/kms/aws"
-  version = "3.1.0"
+  version = "3.1.1"
 
   description              = "AMI Encryption Key"
   customer_master_key_spec = "SYMMETRIC_DEFAULT"
