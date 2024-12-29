@@ -638,3 +638,8 @@ output "ptr_record" {
   description = "public dns"
   value       = aws_eip.foo.ptr_record
 }
+
+output "ipv6_addresses" {
+  description = "The ipv6 addresses of the webserver"
+  value       = module.ec2_instance.ipv6_addresses
+}

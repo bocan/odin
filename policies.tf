@@ -58,3 +58,51 @@ resource "aws_iam_instance_profile" "ec2_profile" {
   name = "odin-ec2-profile"
   role = aws_iam_role.ec2_role.name
 }
+
+#Create a policy
+#https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy
+resource "aws_iam_policy" "route53_policy" {
+  name        = "AllowExternalDNSUpdates"
+  path        = "/"
+  description = "Policy to provide permission to Route53"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "route53:ChangeResourceRecordSets"
+        ],
+        "Resource" : [
+          "arn:aws:route53:::hostedzone/*"
+        ]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "route53:ListHostedZones",
+          "route53:ListHostedZonesByName",
+          "route53:ListResourceRecordSets",
+          "route53:GetChange",
+          "route53:ListTagsForResource"
+        ],
+        "Resource" : [
+          "*"
+        ]
+      }
+    ]
+  })
+}
+
+
+
+
+
+resource "aws_iam_user" "external-dns-user" {
+  name = "external-dns"
+}
+
+resource "aws_iam_user_policy_attachment" "attach-ex-dns-user" {
+  user       = aws_iam_user.external-dns-user.name
+  policy_arn = aws_iam_policy.route53_policy.arn
+}

@@ -1,5 +1,8 @@
 provider "aws" {
   region = local.region
+  default_tags {
+    tags = local.tags
+  }
 }
 
 data "aws_availability_zones" "available" {}
@@ -19,8 +22,9 @@ data "aws_ami" "debian" {
 
   filter {
     name   = "name"
-    values = ["debian-sid-amd64-*"]
+    values = ["debian-12-amd64-*"]
   }
+  #values = ["debian-sid-amd64-*"]
 
   filter {
     name   = "virtualization-type"
@@ -107,9 +111,9 @@ locals {
     GITHUB_TOKEN = var.github_token
   })
 
-  # TODO - I don't actually need this.
   tags = {
-    "kubernetes.io/cluster/k0s" = "owned"
+    ManagedBy = "Terraform",
+    Owner     = "Chris Funderburg"
   }
   me = var.users_for_key
 }
@@ -121,7 +125,7 @@ locals {
 ###############################################################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.15.0"
+  version = "5.17.0"
 
   name = local.name
   cidr = local.vpc_cidr
@@ -164,7 +168,6 @@ module "kms" {
   # I'm hijacking this for spot instances.
   key_service_roles_for_autoscaling = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot"]
 
-  tags = {
-    Terraform = "true"
-  }
+  tags = local.tags
+
 }

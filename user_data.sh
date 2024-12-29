@@ -15,21 +15,21 @@ fi
 
 systemctl stop docker
 
-while [ ! -e /dev/nvme1n1p1 ]
+while [ ! -e /dev/sdh1 ]
 do
     sleep 5
 done
 mkdir -p /volume
-mount /dev/nvme1n1p1 /volume
+mount /dev/sdh1 /volume
 
 dd if=/dev/zero of=/swapfile bs=1G count=2
 chmod 0600 /swapfile
 mkswap /swapfile
 
-grep -q nvme1n1p1 /etc/fstab
+grep -q sdh1 /etc/fstab
 if [ $? != 0 ]
 then
-  echo " /dev/nvme1n1p1 /volume ext4 rw 0 1
+  echo "/dev/sdh1 /volume ext4 rw 0 1
 /swapfile      swap    swap defaults 0 0 " >> /etc/fstab
 fi
 
@@ -54,23 +54,55 @@ systemctl daemon-reload
 swapon -a
 
 apt update
-
-if [ "$SPOT_REQ_ID" != "None" ] ; then
-  apt install nftables lsb-release gnupg2 apt-transport-https ca-certificates curl software-properties-common wget default-mysql-client rsync cron git fail2ban jq strace pre-commit hugo aspell ipset -y
-else
-  apt install nftables lsb-release gnupg2 apt-transport-https ca-certificates curl software-properties-common wget rsync cron git fail2ban jq strace pre-commit ipset net-tools dnsutils -y
-  apt purge exim4-base exim4-config exim4-daemon-light -y
-
-  echo '
-[Resolve]
-Cache=yes
-CacheFromLocalhost=yes' > /etc/systemd/resolved.conf
-  systemctl  restart systemd-resolved.service
-
-fi
+apt install gpg software-properties-common -y
 
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor > /etc/apt/trusted.gpg.d/debian.gpg
 add-apt-repository -y "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian bookworm stable"
+
+apt update
+
+if [ "$SPOT_REQ_ID" != "None" ] ; then
+  apt install nftables lsb-release gnupg2 apt-transport-https ca-certificates curl wget default-mysql-client rsync cron git fail2ban jq strace pre-commit hugo aspell ipset -y
+else
+  apt install unbound nftables lsb-release gnupg2 apt-transport-https ca-certificates curl wget rsync cron git fail2ban jq strace pre-commit ipset net-tools dnsutils -y
+  apt purge exim4-base exim4-config exim4-daemon-light -y
+
+  wget https://www.internic.net/domain/named.root -qO- > /var/lib/unbound/root.hints
+
+  echo 'server:
+    log-queries: yes
+    log-replies: yes
+    root-hints: "/var/lib/unbound/root.hints"
+    interface: 0.0.0.0
+    harden-dnssec-stripped: yes
+
+    private-address: 172.18.0.0/16
+    private-address: 172.17.0.0/16
+    private-address: 10.2.0.0/16
+    private-address: fd00::/8
+    private-address: fe80::/10
+
+    access-control: 127.0.0.1/32 allow_snoop
+    access-control: ::1 allow_snoop
+    access-control: 127.0.0.0/8 allow
+    access-control: 172.18.0.0/24 allow_snoop
+    access-control: 172.17.0.0/24 allow_snoop' > /etc/unbound/unbound.conf.d/odin.conf
+
+  systemctl restart unbound
+
+  echo '[Resolve]
+DNSStubListener=no
+DNS=127.0.0.1' > /etc/systemd/resolved.conf
+
+  systemctl  restart systemd-resolved.service
+
+  rm -f /etc/resolv.conf
+  echo 'nameserver 127.0.0.1
+search .' > /etc/resolv.conf
+
+fi
+
+until host download.docker.com; do echo "waiting for working dns"; sleep 1; done
 
 systemctl enable firewall
 systemctl start firewall

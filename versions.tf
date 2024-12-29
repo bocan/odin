@@ -5,6 +5,7 @@ terraform {
     bucket         = "odin-tfstate"
     key            = "states/terraform.tfstate"
     dynamodb_table = "odin-tf-state"
+    region         = "eu-west-2"
   }
 
   required_providers {

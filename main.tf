@@ -73,7 +73,7 @@ module "ec2_instance" {
   spot_instance_interruption_behavior = "stop"
   # End spot request specific attributes
 
-  ipv6_address_count = 1
+  ipv6_addresses = var.ipv6_addresses
 
   user_data_base64 = base64encode(local.user_data)
 
@@ -117,7 +117,8 @@ module "ec2_instance_freyja" {
   associate_public_ip_address = true
   iam_instance_profile        = "odin-ec2-profile"
 
-  user_data_base64 = base64encode(local.user_data)
+  user_data_base64   = base64encode(local.user_data)
+  ipv6_address_count = 0
 
   metadata_options = {
     http_tokens = "optional"
@@ -190,4 +191,12 @@ resource "aws_route53_record" "mailserverA" {
   name    = "mail.cloudcauldron.io"
   type    = "A"
   records = [aws_eip.foo.public_ip]
+}
+
+resource "aws_route53_record" "webserverAAAA" {
+  zone_id = "Z040675438FCVAX53GWAN"
+  ttl     = "300"
+  name    = "chris.funderburg.me"
+  type    = "AAAA"
+  records = module.ec2_instance.ipv6_addresses
 }
