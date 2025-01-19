@@ -3,7 +3,7 @@
 ###############################################################################
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
-  version = "5.2.0"
+  version = "5.3.0"
 
   name        = local.name
   description = "Security group for example usage with EC2 instance"
@@ -21,7 +21,7 @@ module "security_group" {
 ###############################################################################
 module "security_group_freyja" {
   source  = "terraform-aws-modules/security-group/aws"
-  version = "5.2.0"
+  version = "5.3.0"
 
   name        = "ex-freyja"
   description = "Security group for example usage with EC2 instance"
@@ -189,6 +189,14 @@ resource "aws_route53_record" "mailserverA" {
   zone_id = "ZJLY408K7DRUA"
   ttl     = "300"
   name    = "mail.cloudcauldron.io"
+  type    = "A"
+  records = [aws_eip.foo.public_ip]
+}
+
+resource "aws_route53_record" "statusserverA" {
+  zone_id = "ZJLY408K7DRUA"
+  ttl     = "300"
+  name    = "status.cloudcauldron.io"
   type    = "A"
   records = [aws_eip.foo.public_ip]
 }

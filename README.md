@@ -70,8 +70,8 @@ It basically looks like this:
 | <a name="module_ec2_instance"></a> [ec2\_instance](#module\_ec2\_instance) | terraform-aws-modules/ec2-instance/aws | 5.7.1 |
 | <a name="module_ec2_instance_freyja"></a> [ec2\_instance\_freyja](#module\_ec2\_instance\_freyja) | terraform-aws-modules/ec2-instance/aws | 5.7.1 |
 | <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.1.1 |
-| <a name="module_security_group"></a> [security\_group](#module\_security\_group) | terraform-aws-modules/security-group/aws | 5.2.0 |
-| <a name="module_security_group_freyja"></a> [security\_group\_freyja](#module\_security\_group\_freyja) | terraform-aws-modules/security-group/aws | 5.2.0 |
+| <a name="module_security_group"></a> [security\_group](#module\_security\_group) | terraform-aws-modules/security-group/aws | 5.3.0 |
+| <a name="module_security_group_freyja"></a> [security\_group\_freyja](#module\_security\_group\_freyja) | terraform-aws-modules/security-group/aws | 5.3.0 |
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 5.17.0 |
 
 ## Resources
@@ -93,6 +93,7 @@ It basically looks like this:
 | [aws_iam_user.external-dns-user](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user) | resource |
 | [aws_iam_user_policy_attachment.attach-ex-dns-user](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_policy_attachment) | resource |
 | [aws_route53_record.mailserverA](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_route53_record.statusserverA](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.webserverAAAA](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_volume_attachment.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/volume_attachment) | resource |
 | [aws_volume_attachment.this2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/volume_attachment) | resource |
