@@ -53,11 +53,11 @@ module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "5.7.1"
 
-  depends_on = [data.aws_ami.encrypted-ami]
+  depends_on = [data.aws_ami.odin-ami]
 
   name = "${local.name}-spot-instance"
 
-  ami                         = coalesce(var.ami_override, data.aws_ami.encrypted-ami.id)
+  ami                         = data.aws_ami.odin-ami.id
   create_spot_instance        = true
   instance_type               = "t3.medium"
   key_name                    = "freya"
@@ -104,11 +104,11 @@ module "ec2_instance_freyja" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "5.7.1"
 
-  depends_on = [data.aws_ami.encrypted-ami]
+  depends_on = [data.aws_ami.freyja-ami]
 
   name = "ex-freyja-instance"
 
-  ami                         = coalesce(var.ami_override, data.aws_ami.encrypted-ami.id)
+  ami                         = data.aws_ami.freyja-ami.id
   instance_type               = "t3.medium"
   key_name                    = "freya"
   availability_zone           = element(module.vpc.azs, 0)

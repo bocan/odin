@@ -53,20 +53,7 @@ systemctl daemon-reload
 
 swapon -a
 
-apt update
-apt install gpg software-properties-common -y
-
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor > /etc/apt/trusted.gpg.d/debian.gpg
-add-apt-repository -y "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian bookworm stable"
-
-apt update
-
-if [ "$SPOT_REQ_ID" != "None" ] ; then
-  apt install nftables lsb-release gnupg2 apt-transport-https ca-certificates curl wget default-mysql-client rsync cron git fail2ban jq strace pre-commit hugo aspell ipset -y
-else
-  apt install unbound nftables lsb-release gnupg2 apt-transport-https ca-certificates curl wget rsync cron git fail2ban jq strace pre-commit ipset net-tools dnsutils -y
-  apt purge exim4-base exim4-config exim4-daemon-light -y
-
+if [ "$SPOT_REQ_ID" = "None" ] ; then
   wget https://www.internic.net/domain/named.root -qO- > /var/lib/unbound/root.hints
 
   echo 'server:
@@ -114,9 +101,6 @@ echo '{
 }' > /etc/docker/daemon.json
 
 
-apt -y install docker.io docker-compose-plugin
-
-sleep 5
 systemctl start docker
 
 echo "sudo su -" > ~admin/.profile
@@ -135,15 +119,15 @@ echo '1 * * * * docker system prune -f
 ' | crontab -
 fi
 
-echo '
+echo "
 machine github.com
 login ${GITHUB_USER}
-password ${GITHUB_TOKEN}
+password `aws secretsmanager get-secret-value --region eu-west-2 --secret-id githubToken --query SecretString --output text | jq -r .githubToken`
 
 machine api.github.com
 login ${GITHUB_USER}
-password ${GITHUB_TOKEN}
-' > ~/.netrc
+password `aws secretsmanager get-secret-value --region eu-west-2 --secret-id githubToken --query SecretString --output text | jq -r .githubToken`
+" > ~/.netrc
 
 echo '
 [DEFAULT]

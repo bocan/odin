@@ -72,13 +72,12 @@ It basically looks like this:
 | <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.1.1 |
 | <a name="module_security_group"></a> [security\_group](#module\_security\_group) | terraform-aws-modules/security-group/aws | 5.3.0 |
 | <a name="module_security_group_freyja"></a> [security\_group\_freyja](#module\_security\_group\_freyja) | terraform-aws-modules/security-group/aws | 5.3.0 |
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 5.17.0 |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 5.18.1 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [aws_ami_copy.debian_encrypted_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ami_copy) | resource |
 | [aws_dlm_lifecycle_policy.odin_dlm_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dlm_lifecycle_policy) | resource |
 | [aws_dlm_lifecycle_policy.odin_dlm_policy_monthly](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dlm_lifecycle_policy) | resource |
 | [aws_eip.bar](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
@@ -97,8 +96,8 @@ It basically looks like this:
 | [aws_route53_record.webserverAAAA](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_volume_attachment.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/volume_attachment) | resource |
 | [aws_volume_attachment.this2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/volume_attachment) | resource |
-| [aws_ami.debian](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
-| [aws_ami.encrypted-ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_ami.freyja-ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_ami.odin-ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_ebs_volume.ebs_volume](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ebs_volume) | data source |
@@ -110,7 +109,6 @@ It basically looks like this:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_ami_override"></a> [ami\_override](#input\_ami\_override) | The Debian Sid AMI can be updated too fast.  Set this if you don't want to update it. | `string` | `null` | no |
 | <a name="input_github_token"></a> [github\_token](#input\_github\_token) | The github token I use to let Hugo write back to Github. | `string` | n/a | yes |
 | <a name="input_github_user"></a> [github\_user](#input\_github\_user) | The github user I use to let Hugo write back to Github. | `string` | n/a | yes |
 | <a name="input_ipv6_addresses"></a> [ipv6\_addresses](#input\_ipv6\_addresses) | A list of ipv6 addreses to assign to the instance. | `list(string)` | n/a | yes |
@@ -121,7 +119,6 @@ It basically looks like this:
 
 | Name | Description |
 |------|-------------|
-| <a name="output_ami_details"></a> [ami\_details](#output\_ami\_details) | n/a |
 | <a name="output_cgw_arns"></a> [cgw\_arns](#output\_cgw\_arns) | List of ARNs of Customer Gateway |
 | <a name="output_cgw_ids"></a> [cgw\_ids](#output\_cgw\_ids) | List of IDs of Customer Gateway |
 | <a name="output_database_internet_gateway_route_id"></a> [database\_internet\_gateway\_route\_id](#output\_database\_internet\_gateway\_route\_id) | ID of the database internet gateway route |

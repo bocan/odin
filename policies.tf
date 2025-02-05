@@ -20,10 +20,18 @@ resource "aws_iam_policy" "ec2_policy" {
           "ec2:DescribeRouteTables"
         ],
         "Resource" : "*"
+      },
+      {
+        "Action" : [
+          "secretsmanager:GetSecretValue"
+        ],
+        "Resource" : "arn:aws:secretsmanager:eu-west-2:894121584238:secret:githubToken-4HGaY9",
+        "Effect" : "Allow"
       }
     ]
   })
 }
+
 
 #Create a role
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role

@@ -630,9 +630,10 @@ output "ec2_instance_availability_zone" {
   value       = module.ec2_instance.availability_zone
 }
 
-output "ami_details" {
-  value = data.aws_ami.debian.image_id
-}
+# DISABLED - Using Packer
+#output "ami_details" {
+#  value = data.aws_ami.debian.image_id
+#}
 
 output "ptr_record" {
   description = "public dns"

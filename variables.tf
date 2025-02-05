@@ -10,11 +10,6 @@ variable "github_token" {
   sensitive   = true
 }
 
-variable "ami_override" {
-  type        = string
-  description = "The Debian Sid AMI can be updated too fast.  Set this if you don't want to update it."
-  default     = null
-}
 
 variable "users_for_key" {
   type        = list(string)

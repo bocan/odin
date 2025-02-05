@@ -14,25 +14,6 @@ data "aws_caller_identity" "current" {}
 ###############################################################################
 
 #
-# Find the latest Debian Sid Public AMI
-#
-data "aws_ami" "debian" {
-  most_recent = true
-  owners      = ["903794441882"]
-
-  filter {
-    name   = "name"
-    values = ["debian-12-amd64-*"]
-  }
-  #values = ["debian-sid-amd64-*"]
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
-#
 # Find my pre-existing storage volumes
 # to keep permanent data on.
 #
@@ -64,37 +45,28 @@ data "aws_ebs_volume" "ebs_volume_freyja" {
   }
 }
 
-
-#
-# Make an encrypted AMI with the non-encrypted public AMI.
-# Use a customer managed key.
-#
-resource "aws_ami_copy" "debian_encrypted_ami" {
-  name              = "debian-encrypted-ami"
-  description       = "An encrypted root ami based off ${data.aws_ami.debian.id}"
-  source_ami_id     = data.aws_ami.debian.id
-  source_ami_region = "eu-west-2"
-  encrypted         = true
-  kms_key_id        = module.kms.key_arn
-
-  depends_on = [data.aws_ami.debian]
-  tags       = { Name = "debian-encrypted-ami" }
-}
-
-#
-# IIRC, I had to do this as the above isn't instantly ready.
-#
-data "aws_ami" "encrypted-ami" {
+data "aws_ami" "odin-ami" {
   most_recent = true
 
-  depends_on = [aws_ami_copy.debian_encrypted_ami]
   filter {
     name   = "name"
-    values = [aws_ami_copy.debian_encrypted_ami.name]
+    values = ["odin-debian-stable-aws"]
   }
 
   owners = ["self"]
 }
+
+data "aws_ami" "freyja-ami" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["freyja-debian-stable-aws"]
+  }
+
+  owners = ["self"]
+}
+
 
 ###############################################################################
 # Locals
@@ -125,7 +97,7 @@ locals {
 ###############################################################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.17.0"
+  version = "5.18.1"
 
   name = local.name
   cidr = local.vpc_cidr
