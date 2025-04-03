@@ -55,10 +55,9 @@ module "ec2_instance" {
 
   depends_on = [data.aws_ami.odin-ami]
 
-  name = "${local.name}-spot-instance"
+  name = "${local.name}-instance"
 
   ami                         = data.aws_ami.odin-ami.id
-  create_spot_instance        = true
   instance_type               = "t3.medium"
   key_name                    = "freya"
   availability_zone           = element(module.vpc.azs, 0)
@@ -67,15 +66,9 @@ module "ec2_instance" {
   associate_public_ip_address = true
   iam_instance_profile        = "odin-ec2-profile"
 
-  # Spot request specific attributes
-  spot_wait_for_fulfillment           = true
-  spot_type                           = "persistent"
-  spot_instance_interruption_behavior = "stop"
-  # End spot request specific attributes
-
   ipv6_addresses = var.ipv6_addresses
 
-  user_data_base64 = base64encode(local.user_data)
+  user_data_base64 = base64encode(local.odin_user_data)
 
   metadata_options = {
     http_tokens = "optional"
@@ -117,7 +110,7 @@ module "ec2_instance_freyja" {
   associate_public_ip_address = true
   iam_instance_profile        = "odin-ec2-profile"
 
-  user_data_base64   = base64encode(local.user_data)
+  user_data_base64   = base64encode(local.freyja_user_data)
   ipv6_address_count = 0
 
   metadata_options = {
@@ -147,7 +140,7 @@ module "ec2_instance_freyja" {
 resource "aws_eip" "bar" {
   domain = "vpc"
 
-  instance                  = module.ec2_instance.spot_instance_id
+  instance                  = module.ec2_instance.id
   associate_with_private_ip = module.ec2_instance.private_ip
 
   tags = merge(local.tags, { Name = "${local.name}-eip" })
@@ -172,7 +165,7 @@ resource "aws_eip" "foo" {
 resource "aws_volume_attachment" "this" {
   device_name = "/dev/sdh"
   volume_id   = data.aws_ebs_volume.ebs_volume.id
-  instance_id = module.ec2_instance.spot_instance_id
+  instance_id = module.ec2_instance.id
 }
 
 ###############################################################################

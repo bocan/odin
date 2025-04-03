@@ -1,17 +1,8 @@
 #!/bin/bash
 
 echo "Hello Terraform! `date`"
-REGION=eu-west-2
-INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-SPOT_REQ_ID=$(aws --region $REGION ec2 describe-instances --instance-ids "$INSTANCE_ID"  --query 'Reservations[0].Instances[0].SpotInstanceRequestId' --output text)
-if [ "$SPOT_REQ_ID" != "None" ] ; then
-  TAGS=$(aws --region $REGION ec2 describe-spot-instance-requests --spot-instance-request-ids "$SPOT_REQ_ID" --query 'SpotInstanceRequests[0].Tags')
-  aws --region $REGION ec2 create-tags --resources "$INSTANCE_ID" --tags "$TAGS"
-  hostnamectl set-hostname odin
-else
-  hostnamectl set-hostname freyja
-fi
-#aws ec2 modify-instance-metadata-options --instance-id $INSTANCE_ID --http-tokens required
+
+hostnamectl set-hostname odin
 
 systemctl stop docker
 
@@ -39,11 +30,12 @@ fi
 # https://gist.github.com/bocan/ff82cbcbdc848aa34ff015e23ed866bf
 echo '[Unit]
 Description = Firewall Startup Script
-After = network.target volume.mount
+After = network.target volume.mount docker.service
 
 [Service]
 Type = simple
 User = root
+ExecStartPre=/bin/sleep 30
 ExecStart = /volume/firewall/build
 
 [Install]
@@ -52,42 +44,6 @@ WantedBy = multi-user.target' > /etc/systemd/system/firewall.service
 systemctl daemon-reload
 
 swapon -a
-
-if [ "$SPOT_REQ_ID" = "None" ] ; then
-  wget https://www.internic.net/domain/named.root -qO- > /var/lib/unbound/root.hints
-
-  echo 'server:
-    log-queries: yes
-    log-replies: yes
-    root-hints: "/var/lib/unbound/root.hints"
-    interface: 0.0.0.0
-    harden-dnssec-stripped: yes
-
-    private-address: 172.18.0.0/16
-    private-address: 172.17.0.0/16
-    private-address: 10.2.0.0/16
-    private-address: fd00::/8
-    private-address: fe80::/10
-
-    access-control: 127.0.0.1/32 allow_snoop
-    access-control: ::1 allow_snoop
-    access-control: 127.0.0.0/8 allow
-    access-control: 172.18.0.0/24 allow_snoop
-    access-control: 172.17.0.0/24 allow_snoop' > /etc/unbound/unbound.conf.d/odin.conf
-
-  systemctl restart unbound
-
-  echo '[Resolve]
-DNSStubListener=no
-DNS=127.0.0.1' > /etc/systemd/resolved.conf
-
-  systemctl  restart systemd-resolved.service
-
-  rm -f /etc/resolv.conf
-  echo 'nameserver 127.0.0.1
-search .' > /etc/resolv.conf
-
-fi
 
 until host download.docker.com; do echo "waiting for working dns"; sleep 1; done
 
@@ -105,7 +61,6 @@ systemctl start docker
 
 echo "sudo su -" > ~admin/.profile
 
-if [ "$SPOT_REQ_ID" != "None" ] ; then
 echo '*/15 * * * * docker exec --user www-data php /usr/local/bin/php /var/www/chris.funderburg.me/ttrss/update.php --feeds
 */31 * * * * docker exec --user 1000 php /usr/local/bin/php /var/www/chris.funderburg.me/nextcloud/cron.php
 */5 * * * * cd /volume/Websites && git pull && docker run -v $PWD/hugo-funderburg:/src bocan/hugo:latest --environment production
@@ -113,11 +68,6 @@ echo '*/15 * * * * docker exec --user www-data php /usr/local/bin/php /var/www/c
 1 * * * * docker system prune -f
 0 0 * * * journalctl --vacuum-time=1d
 ' | crontab -
-else
-echo '1 * * * * docker system prune -f
-0 0 * * * journalctl --vacuum-time=1d
-' | crontab -
-fi
 
 echo "
 machine github.com
@@ -132,6 +82,7 @@ password `aws secretsmanager get-secret-value --region eu-west-2 --secret-id git
 echo '
 [DEFAULT]
 logtarget = SYSTEMD-JOURNAL
+backend = systemd
 
 bantime = 24h
 
@@ -145,10 +96,23 @@ maxretry = 3
 
 [sshd]
 
-mode   = agressive' > /etc/fail2ban/jail.local
+mode   = agressive
+
+[nginx-botsearch]
+enabled = true
+logpath = journalctl CONTAINER_NAME=nginx -f -o cat
+
+[nginx-http-auth]
+enabled = true
+logpath = journalctl CONTAINER_NAME=nginx -f -o cat
+
+[nginx-bad-request]
+enabled = true
+logpath = journalctl CONTAINER_NAME=nginx -f -o cat
+
+' > /etc/fail2ban/jail.local
 
 systemctl reload fail2ban
-
 
 HOME=/root git config --global user.name "Chris Funderburg"
 HOME=/root git config --global user.email chris@funderburg.me

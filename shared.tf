@@ -49,7 +49,7 @@ data "aws_ami" "odin-ami" {
   most_recent = true
 
   filter {
-    name   = "name"
+    name   = "tag:Series"
     values = ["odin-debian-stable-aws"]
   }
 
@@ -60,7 +60,7 @@ data "aws_ami" "freyja-ami" {
   most_recent = true
 
   filter {
-    name   = "name"
+    name   = "tag:Series"
     values = ["freyja-debian-stable-aws"]
   }
 
@@ -78,7 +78,11 @@ locals {
   vpc_cidr = "10.2.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
-  user_data = templatefile("${path.module}/user_data.sh", {
+  odin_user_data = templatefile("${path.module}/odin_user_data.sh", {
+    GITHUB_USER  = var.github_user
+    GITHUB_TOKEN = var.github_token
+  })
+  freyja_user_data = templatefile("${path.module}/freyja_user_data.sh", {
     GITHUB_USER  = var.github_user
     GITHUB_TOKEN = var.github_token
   })
