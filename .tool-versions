@@ -4,4 +4,4 @@ opentofu 1.9.1
 pre-commit 4.2.0
 python 3.13.3
 terraform-docs 0.20.0
-tfsec 1.28.13
+tfsec 1.28.14
