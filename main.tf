@@ -200,4 +200,5 @@ resource "aws_route53_record" "webserverAAAA" {
   name    = "chris.funderburg.me"
   type    = "AAAA"
   records = module.ec2_instance.ipv6_addresses
+
 }
