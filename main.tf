@@ -11,7 +11,18 @@ module "security_group" {
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
   ingress_rules       = ["http-80-tcp", "https-443-tcp", "all-icmp", "ssh-tcp"]
-  egress_rules        = ["all-all"]
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 9100
+      to_port     = 9100
+      protocol    = "tcp"
+      description = "prometheus-node-exporter"
+      cidr_blocks = "5.64.0.0/13"
+    },
+  ]
+
+  egress_rules = ["all-all"]
 
   tags = local.tags
 }
@@ -28,7 +39,7 @@ module "security_group_freyja" {
   vpc_id      = module.vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["smtp-tcp", "smtp-submission-587-tcp", "smtps-465-tcp", "all-icmp", "ssh-tcp"]
+  ingress_rules       = ["smtp-tcp", "smtp-submission-587-tcp", "smtps-465-tcp", "all-icmp", "ssh-tcp", "http-80-tcp", "https-443-tcp"]
 
   ingress_with_cidr_blocks = [
     {
@@ -37,6 +48,13 @@ module "security_group_freyja" {
       protocol    = "tcp"
       description = "Imaps"
       cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      from_port   = 9100
+      to_port     = 9100
+      protocol    = "tcp"
+      description = "prometheus-node-exporter"
+      cidr_blocks = "5.64.0.0/13"
     },
   ]
 
