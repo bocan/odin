@@ -55,24 +55,24 @@ It basically looks like this:
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0, < 6.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.0, < 6.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_ec2_instance"></a> [ec2\_instance](#module\_ec2\_instance) | terraform-aws-modules/ec2-instance/aws | 5.8.0 |
-| <a name="module_ec2_instance_freyja"></a> [ec2\_instance\_freyja](#module\_ec2\_instance\_freyja) | terraform-aws-modules/ec2-instance/aws | 5.8.0 |
+| <a name="module_ec2_instance"></a> [ec2\_instance](#module\_ec2\_instance) | terraform-aws-modules/ec2-instance/aws | 6.0.0 |
+| <a name="module_ec2_instance_freyja"></a> [ec2\_instance\_freyja](#module\_ec2\_instance\_freyja) | terraform-aws-modules/ec2-instance/aws | 6.0.0 |
 | <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.1.1 |
 | <a name="module_security_group"></a> [security\_group](#module\_security\_group) | terraform-aws-modules/security-group/aws | 5.3.0 |
 | <a name="module_security_group_freyja"></a> [security\_group\_freyja](#module\_security\_group\_freyja) | terraform-aws-modules/security-group/aws | 5.3.0 |
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 5.21.0 |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 6.0.1 |
 
 ## Resources
 

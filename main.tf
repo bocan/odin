@@ -69,7 +69,7 @@ module "security_group_freyja" {
 ###############################################################################
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "5.8.0"
+  version = "6.0.0"
 
   depends_on = [data.aws_ami.odin-ami]
 
@@ -93,19 +93,19 @@ module "ec2_instance" {
   }
 
   tags               = local.tags
-  enable_volume_tags = true
+  enable_volume_tags = false
 
   # The root drive should remain small.
   # The idea here is that the root partitions get updated,
   # but little changes beyond that.
   # Data that needs to persist, should go to /volume
-  root_block_device = [
-    {
-      encrypted   = true
-      volume_type = "gp3"
-      volume_size = 8
-    },
-  ]
+  root_block_device = {
+    encrypted   = true
+    volume_type = "gp3"
+    volume_size = 8
+    tags        = merge(local.tags, { Name = "odin-root" })
+  }
+
 }
 
 ###############################################################################
@@ -113,7 +113,7 @@ module "ec2_instance" {
 ###############################################################################
 module "ec2_instance_freyja" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "5.8.0"
+  version = "6.0.0"
 
   depends_on = [data.aws_ami.freyja-ami]
 
@@ -142,13 +142,12 @@ module "ec2_instance_freyja" {
   # The idea here is that the root partitions get updated,
   # but little changes beyond that.
   # Data that needs to persist, should go to /volume
-  root_block_device = [
-    {
-      encrypted   = true
-      volume_type = "gp3"
-      volume_size = 8
-    },
-  ]
+  root_block_device = {
+    encrypted   = true
+    volume_type = "gp3"
+    volume_size = 8
+    tags        = merge(local.tags, { Name = "freyja-root" })
+  }
 }
 
 
