@@ -67,9 +67,9 @@ It basically looks like this:
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_ec2_instance"></a> [ec2\_instance](#module\_ec2\_instance) | terraform-aws-modules/ec2-instance/aws | 6.0.0 |
-| <a name="module_ec2_instance_freyja"></a> [ec2\_instance\_freyja](#module\_ec2\_instance\_freyja) | terraform-aws-modules/ec2-instance/aws | 6.0.0 |
-| <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.1.1 |
+| <a name="module_ec2_instance"></a> [ec2\_instance](#module\_ec2\_instance) | terraform-aws-modules/ec2-instance/aws | 6.0.2 |
+| <a name="module_ec2_instance_freyja"></a> [ec2\_instance\_freyja](#module\_ec2\_instance\_freyja) | terraform-aws-modules/ec2-instance/aws | 6.0.2 |
+| <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 4.0.0 |
 | <a name="module_security_group"></a> [security\_group](#module\_security\_group) | terraform-aws-modules/security-group/aws | 5.3.0 |
 | <a name="module_security_group_freyja"></a> [security\_group\_freyja](#module\_security\_group\_freyja) | terraform-aws-modules/security-group/aws | 5.3.0 |
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 6.0.1 |
