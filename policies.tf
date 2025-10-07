@@ -70,7 +70,7 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 #Create a policy
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy
 resource "aws_iam_policy" "route53_policy" {
-  name        = "AllowExternalDNSUpdates"
+  name        = "AllowAWSStuff"
   path        = "/"
   description = "Policy to provide permission to Route53"
   policy = jsonencode({
@@ -97,14 +97,26 @@ resource "aws_iam_policy" "route53_policy" {
         "Resource" : [
           "*"
         ]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:DescribeLogStreams",
+          "logs:PutLogEvents",
+          "logs:PutRetentionPolicy"
+        ],
+        "Resource" : [
+          aws_cloudwatch_log_group.journal.arn,
+          "${aws_cloudwatch_log_group.journal.arn}:*",
+          aws_cloudwatch_log_group.docker.arn,
+          "${aws_cloudwatch_log_group.docker.arn}:*"
+        ]
       }
     ]
   })
 }
-
-
-
-
 
 resource "aws_iam_user" "external-dns-user" {
   name = "external-dns"
