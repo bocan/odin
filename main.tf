@@ -3,7 +3,7 @@
 ###############################################################################
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
-  version = "5.3.0"
+  version = "5.3.1"
 
   name        = local.name
   description = "Security group for example usage with EC2 instance"
@@ -32,7 +32,7 @@ module "security_group" {
 ###############################################################################
 module "security_group_freyja" {
   source  = "terraform-aws-modules/security-group/aws"
-  version = "5.3.0"
+  version = "5.3.1"
 
   name        = "ex-freyja"
   description = "Security group for example usage with EC2 instance"
