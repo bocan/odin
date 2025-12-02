@@ -69,7 +69,7 @@ module "security_group_freyja" {
 ###############################################################################
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "6.1.1"
+  version = "6.1.5"
 
   depends_on = [data.aws_ami.odin-ami]
 
@@ -113,7 +113,7 @@ module "ec2_instance" {
 ###############################################################################
 module "ec2_instance_freyja" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "6.1.1"
+  version = "6.1.5"
 
   depends_on = [data.aws_ami.freyja-ami]
 
