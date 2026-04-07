@@ -3,5 +3,5 @@ jq 1.7.1
 opentofu 1.11.5
 pre-commit 4.5.1
 python 3.14.2
-terraform-docs 0.21.0
+terraform-docs 0.22.0
 tfsec 1.28.14
