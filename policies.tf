@@ -1,8 +1,6 @@
 #Create a policy
 #https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy
 resource "aws_iam_policy" "ec2_policy" {
-  # checkov:skip=CKV_AWS_355:FixMe
-  # checkov:skip=CKV_AWS_290:FixMe
   name        = "odin-ec2-policy"
   path        = "/"
   description = "Policy to provide permission to EC2"
@@ -10,23 +8,33 @@ resource "aws_iam_policy" "ec2_policy" {
     "Version" : "2012-10-17",
     "Statement" : [
       {
-        "Sid" : "VisualEditor0",
+        "Sid" : "DescribeActions",
         "Effect" : "Allow",
         "Action" : [
           "ec2:DescribeInstances",
-          "ec2:CreateTags",
           "ec2:DescribeSpotInstanceRequests",
-          "ec2:ModifyInstanceMetadataOptions",
           "ec2:DescribeRouteTables"
         ],
         "Resource" : "*"
       },
       {
+        "Sid" : "CreateTagsOwnedResources",
+        "Effect" : "Allow",
+        "Action" : ["ec2:CreateTags"],
+        "Resource" : "*",
+        "Condition" : {
+          "StringEquals" : {
+            "aws:ResourceTag/ManagedBy" : "Terraform"
+          }
+        }
+      },
+      {
+        "Sid" : "GetGithubToken",
+        "Effect" : "Allow",
         "Action" : [
           "secretsmanager:GetSecretValue"
         ],
-        "Resource" : "arn:aws:secretsmanager:eu-west-2:894121584238:secret:githubToken-4HGaY9",
-        "Effect" : "Allow"
+        "Resource" : "arn:aws:secretsmanager:eu-west-2:894121584238:secret:githubToken-4HGaY9"
       }
     ]
   })
@@ -58,6 +66,11 @@ resource "aws_iam_role" "ec2_role" {
 resource "aws_iam_role_policy_attachment" "custom" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = aws_iam_policy.ec2_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ssm" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 #Attach role to an instance profile

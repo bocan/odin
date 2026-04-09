@@ -3,6 +3,7 @@
 resource "aws_kms_key" "cwlogs" {
   description             = "KMS for CloudWatch Logs"
   deletion_window_in_days = 7
+  enable_key_rotation    = true
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -33,6 +34,20 @@ resource "aws_kms_key" "cwlogs" {
             "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:*"
           }
         }
+      },
+      # 3) SNS service needs Encrypt/Decrypt for topic at-rest encryption
+      {
+        Sid       = "AllowSNSService"
+        Effect    = "Allow"
+        Principal = { Service = "sns.amazonaws.com" }
+        Action = [
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
       }
     ]
   })

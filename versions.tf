@@ -1,11 +1,11 @@
 terraform {
-  required_version = ">= 1.9.0"
+  required_version = ">= 1.10.0"
 
   backend "s3" {
-    bucket         = "odin-tfstate"
-    key            = "states/terraform.tfstate"
-    dynamodb_table = "odin-tf-state"
-    region         = "eu-west-2"
+    bucket       = "odin-tfstate"
+    key          = "states/terraform.tfstate"
+    region       = "eu-west-2"
+    use_lockfile = true
   }
 
   required_providers {

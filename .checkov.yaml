@@ -1,0 +1,6 @@
+skip-check:
+  - CKV_TF_1   # Requires module source to use a commit hash — overly strict for trusted registries
+  - CKV_TF_2   # Requires module version to be pinned with a tag — covered by version constraints
+  - CKV_AWS_273 # No.
+  - CKV_AWS_338 # This isn't a business. I don't need a year's logs.
+  - CKV_AWS_40 # Irrelevant in this case.

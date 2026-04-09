@@ -17,8 +17,20 @@ resource "aws_iam_role" "dlm_lifecycle_role" {
 }
 
 data "aws_iam_policy_document" "dlm_lifecycle" {
-  # checkov:skip=CKV_AWS_111:FixMe
-  # checkov:skip=CKV_AWS_356:FixMe
+  # Describe actions do not support resource-level restrictions
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ec2:DescribeInstances",
+      "ec2:DescribeVolumes",
+      "ec2:DescribeSnapshots",
+    ]
+
+    resources = ["*"]
+  }
+
+  # Write actions scoped to resources tagged as belonging to this project
   statement {
     effect = "Allow"
 
@@ -26,12 +38,15 @@ data "aws_iam_policy_document" "dlm_lifecycle" {
       "ec2:CreateSnapshot",
       "ec2:CreateSnapshots",
       "ec2:DeleteSnapshot",
-      "ec2:DescribeInstances",
-      "ec2:DescribeVolumes",
-      "ec2:DescribeSnapshots",
     ]
 
     resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/ManagedBy"
+      values   = ["Terraform"]
+    }
   }
 
   statement {

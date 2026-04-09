@@ -28,21 +28,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "encrypt_bucket" {
   }
 }
 
-resource "aws_dynamodb_table" "terraform_state_lock" {
-  name           = "odin-tf-state"
-  read_capacity  = 1
-  write_capacity = 1
-  hash_key       = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-}
-
 resource "aws_s3_bucket_public_access_block" "access_good_1" {
   bucket = aws_s3_bucket.terraform_state.bucket
 
-  block_public_acls   = true
-  block_public_policy = true
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }

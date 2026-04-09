@@ -35,15 +35,7 @@ resource "aws_s3_bucket_ownership_controls" "nextcloud_owner" {
   }
 }
 
-resource "aws_s3_bucket_acl" "nextcloud_acl" {
-  depends_on = [aws_s3_bucket_ownership_controls.nextcloud_owner]
-
-  bucket = aws_s3_bucket.nextcloud_storage.id
-  acl    = "private"
-}
-
 resource "aws_iam_user" "nextcloud_user" {
-  #checkov:skip=CKV_AWS_273:I want an explicit IAM user for this service.
   name = "nextcloud-s3-user"
 
   tags = merge(local.tags, { Name = "nextcloud-s3-user" })

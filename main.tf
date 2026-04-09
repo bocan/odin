@@ -89,7 +89,7 @@ module "ec2_instance" {
   user_data_base64 = base64encode(local.odin_user_data)
 
   metadata_options = {
-    http_tokens = "optional"
+    http_tokens = "required"
   }
 
   tags               = local.tags
@@ -100,10 +100,10 @@ module "ec2_instance" {
   # but little changes beyond that.
   # Data that needs to persist, should go to /volume
   root_block_device = {
-    encrypted   = true
-    volume_type = "gp3"
-    volume_size = 8
-    tags        = merge(local.tags, { Name = "odin-root" })
+    encrypted = true
+    type      = "gp3"
+    size      = 8
+    tags      = merge(local.tags, { Name = "odin-root" })
   }
 
 }
@@ -132,7 +132,7 @@ module "ec2_instance_freyja" {
   ipv6_address_count = 0
 
   metadata_options = {
-    http_tokens = "optional"
+    http_tokens = "required"
   }
 
   tags               = local.tags
@@ -143,10 +143,10 @@ module "ec2_instance_freyja" {
   # but little changes beyond that.
   # Data that needs to persist, should go to /volume
   root_block_device = {
-    encrypted   = true
-    volume_type = "gp3"
-    volume_size = 8
-    tags        = merge(local.tags, { Name = "freyja-root" })
+    encrypted = true
+    type      = "gp3"
+    size      = 8
+    tags      = merge(local.tags, { Name = "freyja-root" })
   }
 }
 

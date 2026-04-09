@@ -23,7 +23,14 @@ variable "passphrase" {
   sensitive   = true
 }
 
+variable "alert_phone_number" {
+  type        = string
+  description = "Phone number to receive SMS alerts for EC2 status check failures (E.164 format, e.g. +447700900000)."
+  sensitive   = true
+}
+
 variable "ipv6_addresses" {
   type        = list(string)
   description = "A list of ipv6 addreses to assign to the instance."
 }
+
