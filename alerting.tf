@@ -15,40 +15,52 @@ resource "aws_sns_topic_subscription" "ec2_alerts_sms" {
 }
 
 ###############################################################################
-# CloudWatch Alarms — odin
+# CloudWatch Alarms — per instance × failure type
+#
+# StatusCheckFailed_System   → ec2:recover (migrate to new host, preserves EIP/EBS)
+# StatusCheckFailed_Instance → ec2:reboot  (restart OS, for hangs/kernel panics)
 ###############################################################################
-resource "aws_cloudwatch_metric_alarm" "odin_status_check" {
-  alarm_name        = "odin-status-check-failed"
-  alarm_description = "Fires when either the instance or system status check fails on odin."
-  namespace         = "AWS/EC2"
-  metric_name       = "StatusCheckFailed"
-  dimensions = {
-    InstanceId = module.ec2_instance.id
+locals {
+  ec2_instances = {
+    odin   = module.ec2_instance.id
+    freyja = module.ec2_instance_freyja.id
   }
 
-  statistic           = "Maximum"
-  period              = 60
-  evaluation_periods  = 2
-  threshold           = 1
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  treat_missing_data  = "breaching"
+  ec2_alarm_types = {
+    system = {
+      metric      = "StatusCheckFailed_System"
+      description = "system (hardware/host) status check failed"
+      action      = "arn:aws:automate:eu-west-2:ec2:recover"
+    }
+    instance = {
+      metric      = "StatusCheckFailed_Instance"
+      description = "instance (OS) status check failed"
+      action      = "arn:aws:automate:eu-west-2:ec2:reboot"
+    }
+  }
 
-  alarm_actions = [aws_sns_topic.ec2_alerts.arn]
-  ok_actions    = [aws_sns_topic.ec2_alerts.arn]
-
-  tags = merge(local.tags, { Name = "odin-status-check-failed" })
+  ec2_alarms = {
+    for pair in setproduct(keys(local.ec2_instances), keys(local.ec2_alarm_types)) :
+    "${pair[0]}-${pair[1]}" => {
+      instance_id = local.ec2_instances[pair[0]]
+      instance    = pair[0]
+      type        = pair[1]
+      metric      = local.ec2_alarm_types[pair[1]].metric
+      description = local.ec2_alarm_types[pair[1]].description
+      action      = local.ec2_alarm_types[pair[1]].action
+    }
+  }
 }
 
-###############################################################################
-# CloudWatch Alarms — freyja
-###############################################################################
-resource "aws_cloudwatch_metric_alarm" "freyja_status_check" {
-  alarm_name        = "freyja-status-check-failed"
-  alarm_description = "Fires when either the instance or system status check fails on freyja."
+resource "aws_cloudwatch_metric_alarm" "ec2_status" {
+  for_each = local.ec2_alarms
+
+  alarm_name        = "${each.value.instance}-${each.value.type}-check-failed"
+  alarm_description = "Fires when the ${each.value.description} on ${each.value.instance}."
   namespace         = "AWS/EC2"
-  metric_name       = "StatusCheckFailed"
+  metric_name       = each.value.metric
   dimensions = {
-    InstanceId = module.ec2_instance_freyja.id
+    InstanceId = each.value.instance_id
   }
 
   statistic           = "Maximum"
@@ -58,8 +70,8 @@ resource "aws_cloudwatch_metric_alarm" "freyja_status_check" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "breaching"
 
-  alarm_actions = [aws_sns_topic.ec2_alerts.arn]
+  alarm_actions = [aws_sns_topic.ec2_alerts.arn, each.value.action]
   ok_actions    = [aws_sns_topic.ec2_alerts.arn]
 
-  tags = merge(local.tags, { Name = "freyja-status-check-failed" })
+  tags = merge(local.tags, { Name = "${each.value.instance}-${each.value.type}-check-failed" })
 }

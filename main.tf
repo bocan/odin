@@ -9,20 +9,67 @@ module "security_group" {
   description = "Security group for example usage with EC2 instance"
   vpc_id      = module.vpc.vpc_id
 
-  ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["http-80-tcp", "https-443-tcp", "all-icmp", "ssh-tcp"]
+  ingress_rules = {
+    https-from-anywhere = {
+      from_port   = 443
+      to_port     = 443
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "HTTPS from Anywhere"
+    }
 
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = 9100
-      to_port     = 9100
-      protocol    = "tcp"
-      description = "prometheus-node-exporter"
-      cidr_blocks = "5.64.0.0/13"
-    },
-  ]
+    https-from-anywhere-ipv6 = {
+      from_port   = 443
+      to_port     = 443
+      cidr_ipv6   = "::/0"
+      description = "HTTPS from Anywhere"
+    }
 
-  egress_rules = ["all-all"]
+    http-from-ipv4 = {
+      from_port   = 80
+      to_port     = 80
+      ip_protocol = "tcp"
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "HTTP from IPv4"
+    }
+
+    http-from-ipv6 = {
+      from_port   = 80
+      to_port     = 80
+      ip_protocol = "tcp"
+      cidr_ipv6   = "::/0"
+      description = "HTTP from IPv6"
+    }
+
+    icmp-from-anywhere = {
+      from_port   = -1
+      to_port     = -1
+      cidr_ipv4   = "0.0.0.0/0"
+      ip_protocol = "icmp"
+      description = "ICMP from Anywhere"
+    }
+
+    all-from-self = {
+      ip_protocol                  = "-1"
+      referenced_security_group_id = "self"
+      description                  = "All protocols from self"
+    }
+
+    ssh-from-anywhere = {
+      from_port   = 22
+      to_port     = 22
+      ip_protocol = "tcp"
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "SSH from anywhere"
+    }
+
+  }
+
+  egress_rules = {
+    all = {
+      ip_protocol = "-1"
+      cidr_ipv4   = "0.0.0.0/0"
+    }
+  }
 
   tags = local.tags
 }
@@ -38,27 +85,92 @@ module "security_group_freyja" {
   description = "Security group for example usage with EC2 instance"
   vpc_id      = module.vpc.vpc_id
 
-  ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["smtp-tcp", "smtp-submission-587-tcp", "smtps-465-tcp", "all-icmp", "ssh-tcp", "http-80-tcp", "https-443-tcp"]
+  ingress_rules = {
+    smtp-from-anywhere = {
+      from_port   = 25
+      to_port     = 25
+      ip_protocol = "tcp"
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "SMTP from Anywhere"
+    }
 
-  ingress_with_cidr_blocks = [
-    {
+    smtp-sub-from-anywhere = {
+      from_port   = 587
+      to_port     = 587
+      ip_protocol = "tcp"
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "SMTP Sub from Anywhere"
+    }
+
+    smtps-from-anywhere = {
+      from_port   = 465
+      to_port     = 465
+      ip_protocol = "tcp"
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "SMTPS from Anywhere"
+    }
+
+    imaps-from-anywhere = {
       from_port   = 993
       to_port     = 993
-      protocol    = "tcp"
+      ip_protocol = "tcp"
+      cidr_ipv4   = "0.0.0.0/0"
       description = "Imaps"
-      cidr_blocks = "0.0.0.0/0"
-    },
-    {
+    }
+
+    prometheus-node-exporter-from-anywhere = {
       from_port   = 9100
       to_port     = 9100
-      protocol    = "tcp"
+      ip_protocol = "tcp"
+      cidr_ipv4   = "5.64.0.0/13"
       description = "prometheus-node-exporter"
-      cidr_blocks = "5.64.0.0/13"
-    },
-  ]
+    }
 
-  egress_rules = ["all-all"]
+    icmp-from-anywhere = {
+      from_port   = -1
+      to_port     = -1
+      ip_protocol = "icmp"
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "ICMP from Anywhere"
+    }
+
+    all-from-self = {
+      ip_protocol                  = "-1"
+      referenced_security_group_id = "self"
+      description                  = "All protocols from self"
+    }
+
+    ssh-from-anywhere = {
+      from_port   = 22
+      to_port     = 22
+      ip_protocol = "tcp"
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "SSH from anywhere"
+    }
+
+    https-from-anywhere = {
+      from_port   = 443
+      to_port     = 443
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "HTTPS from Anywhere"
+    }
+
+    http-from-ipv4 = {
+      from_port   = 80
+      to_port     = 80
+      ip_protocol = "tcp"
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "HTTP from IPv4"
+    }
+
+  }
+
+  egress_rules = {
+    all = {
+      ip_protocol = "-1"
+      cidr_ipv4   = "0.0.0.0/0"
+    }
+  }
 
   tags = local.tags
 }
@@ -80,7 +192,7 @@ module "ec2_instance" {
   key_name                    = "freya"
   availability_zone           = element(module.vpc.azs, 0)
   subnet_id                   = element(module.vpc.public_subnets, 0)
-  vpc_security_group_ids      = [module.security_group.security_group_id]
+  vpc_security_group_ids      = [module.security_group.id]
   associate_public_ip_address = true
   iam_instance_profile        = "odin-ec2-profile"
 
@@ -124,7 +236,7 @@ module "ec2_instance_freyja" {
   key_name                    = "freya"
   availability_zone           = element(module.vpc.azs, 0)
   subnet_id                   = element(module.vpc.public_subnets, 0)
-  vpc_security_group_ids      = [module.security_group_freyja.security_group_id]
+  vpc_security_group_ids      = [module.security_group_freyja.id]
   associate_public_ip_address = true
   iam_instance_profile        = "odin-ec2-profile"
 

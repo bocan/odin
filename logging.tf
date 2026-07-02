@@ -3,7 +3,7 @@
 resource "aws_kms_key" "cwlogs" {
   description             = "KMS for CloudWatch Logs"
   deletion_window_in_days = 7
-  enable_key_rotation    = true
+  enable_key_rotation     = true
 
   policy = jsonencode({
     Version = "2012-10-17"

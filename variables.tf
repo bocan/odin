@@ -33,4 +33,3 @@ variable "ipv6_addresses" {
   type        = list(string)
   description = "A list of ipv6 addreses to assign to the instance."
 }
-
