@@ -130,7 +130,7 @@ module "vpc" {
 ###############################################################################
 module "kms" {
   source  = "terraform-aws-modules/kms/aws"
-  version = "4.2.0"
+  version = "4.2.1"
 
   description              = "AMI Encryption Key"
   customer_master_key_spec = "SYMMETRIC_DEFAULT"
