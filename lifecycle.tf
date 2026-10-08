@@ -30,29 +30,43 @@ data "aws_iam_policy_document" "dlm_lifecycle" {
     resources = ["*"]
   }
 
-  # Write actions scoped to resources tagged as belonging to this project
+  # CreateSnapshot is authorised against both the source volume and the new
+  # snapshot. Only volumes that opt in with the Snapshot tag can be a source.
+  statement {
+    effect    = "Allow"
+    actions   = ["ec2:CreateSnapshot"]
+    resources = ["arn:aws:ec2:*:*:volume/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/Snapshot"
+      values   = ["true"]
+    }
+  }
+
+  # The new snapshot has no tags yet, so this one can't be tag-conditioned.
   statement {
     effect = "Allow"
 
     actions = [
       "ec2:CreateSnapshot",
-      "ec2:CreateSnapshots",
-      "ec2:DeleteSnapshot",
+      "ec2:CreateTags",
     ]
 
-    resources = ["*"]
+    resources = ["arn:aws:ec2:*::snapshot/*"]
+  }
+
+  # DLM may only delete the snapshots it made itself
+  statement {
+    effect    = "Allow"
+    actions   = ["ec2:DeleteSnapshot"]
+    resources = ["arn:aws:ec2:*::snapshot/*"]
 
     condition {
       test     = "StringEquals"
-      variable = "aws:ResourceTag/ManagedBy"
-      values   = ["Terraform"]
+      variable = "aws:ResourceTag/SnapshotCreator"
+      values   = ["DLM"]
     }
-  }
-
-  statement {
-    effect    = "Allow"
-    actions   = ["ec2:CreateTags"]
-    resources = ["arn:aws:ec2:*::snapshot/*"]
   }
 }
 
@@ -62,71 +76,49 @@ resource "aws_iam_role_policy" "dlm_lifecycle" {
   policy = data.aws_iam_policy_document.dlm_lifecycle.json
 }
 
-resource "aws_dlm_lifecycle_policy" "odin_dlm_policy" {
-  description        = "DLM daily lifecycle policy"
-  execution_role_arn = aws_iam_role.dlm_lifecycle_role.arn
-  state              = "ENABLED"
-
-  tags = {
-    Terraform = "true"
-    Name      = "${local.name}_daily_lifecyle"
+#
+# The data volumes pre-date this repo and are only looked up, not managed,
+# so opt them in to the DLM policy by managing just the one tag.
+#
+resource "aws_ec2_tag" "data_volume_snapshot" {
+  for_each = {
+    odin   = data.aws_ebs_volume.ebs_volume.id
+    freyja = data.aws_ebs_volume.ebs_volume_freyja.id
   }
 
-  policy_details {
-    resource_types = ["VOLUME"]
-
-    schedule {
-      name = "3 days of twice daily snapshots"
-
-      create_rule {
-        cron_expression = "cron(0 8,20 2-31 * ? *)"
-      }
-
-      retain_rule {
-        count = 6
-      }
-
-      tags_to_add = {
-        SnapshotCreator = "DLM"
-        Type            = "TwiceDaily"
-      }
-
-      copy_tags = false
-    }
-
-    target_tags = {
-      Snapshot = "true"
-    }
-  }
+  resource_id = each.value
+  key         = "Snapshot"
+  value       = "true"
 }
 
-resource "aws_dlm_lifecycle_policy" "odin_dlm_policy_monthly" {
-  description        = "DLM monthly lifecycle policy"
+resource "aws_dlm_lifecycle_policy" "odin_dlm_policy_weekly" {
+  description        = "DLM weekly lifecycle policy"
   execution_role_arn = aws_iam_role.dlm_lifecycle_role.arn
   state              = "ENABLED"
 
   tags = {
     Terraform = "true"
-    Name      = "${local.name}_monthly_lifecyle"
+    Name      = "${local.name}_weekly_lifecyle"
   }
 
   policy_details {
     resource_types = ["VOLUME"]
 
     schedule {
-      name = "3 months monthly snapshots"
+      name = "Weekly snapshot keep the latest"
 
+      # Sundays at 03:00 UTC
       create_rule {
-        cron_expression = "cron(00 02 01 * ? *)"
+        cron_expression = "cron(0 3 ? * SUN *)"
       }
 
       retain_rule {
-        count = 3
+        count = 1
       }
 
       tags_to_add = {
         SnapshotCreator = "DLM"
-        Type            = "Monthly"
+        Type            = "Weekly"
       }
 
       copy_tags = false
@@ -136,4 +128,9 @@ resource "aws_dlm_lifecycle_policy" "odin_dlm_policy_monthly" {
       Snapshot = "true"
     }
   }
+
+  depends_on = [
+    aws_iam_role_policy.dlm_lifecycle,
+    aws_ec2_tag.data_volume_snapshot,
+  ]
 }

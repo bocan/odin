@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  gitleaks:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  terraform:
+    name: OpenTofu Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: "1.10.0"
+
+      - name: tofu fmt
+        working-directory: .
+        run: tofu fmt -check -recursive
+
+      - name: tofu init
+        working-directory: .
+        run: tofu init -backend=false
+        env:
+          TF_VAR_github_user: "placeholder"
+          TF_VAR_github_token: "placeholder"
+          TF_VAR_passphrase: "placeholder"
+          TF_VAR_alert_phone_number: "+440000000000"
+          TF_VAR_ipv6_addresses: '["::1"]'
+          TF_VAR_users_for_key: '["arn:aws:iam::000000000000:root"]'
+
+      - name: tofu validate
+        working-directory: .
+        run: tofu validate
+        env:
+          TF_VAR_github_user: "placeholder"
+          TF_VAR_github_token: "placeholder"
+          TF_VAR_passphrase: "placeholder"
+          TF_VAR_alert_phone_number: "+440000000000"
+          TF_VAR_ipv6_addresses: '["::1"]'
+          TF_VAR_users_for_key: '["arn:aws:iam::000000000000:root"]'
+
+  packer:
+    name: Packer Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@v3
+        with:
+          version: "latest"
+
+      - name: packer init
+        working-directory: packer
+        run: packer init .
+
+      - name: packer fmt
+        working-directory: packer
+        run: packer fmt -check .
+
+      - name: packer validate
+        working-directory: packer
+        run: |
+          packer validate odin.pkr.hcl
+          packer validate freyja.pkr.hcl
+
+  checkov:
+    name: Checkov Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          config_file: .checkov.yaml
+          output_format: cli
+          soft_fail: false

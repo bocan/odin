@@ -110,22 +110,6 @@ resource "aws_iam_policy" "route53_policy" {
         "Resource" : [
           "*"
         ]
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:DescribeLogStreams",
-          "logs:PutLogEvents",
-          "logs:PutRetentionPolicy"
-        ],
-        "Resource" : [
-          aws_cloudwatch_log_group.journal.arn,
-          "${aws_cloudwatch_log_group.journal.arn}:*",
-          aws_cloudwatch_log_group.docker.arn,
-          "${aws_cloudwatch_log_group.docker.arn}:*"
-        ]
       }
     ]
   })

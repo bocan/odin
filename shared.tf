@@ -124,26 +124,3 @@ module "vpc" {
 
   tags = local.tags
 }
-
-###############################################################################
-# Create a customer managed key with the KMS Module
-###############################################################################
-module "kms" {
-  source  = "terraform-aws-modules/kms/aws"
-  version = "4.2.0"
-
-  description              = "AMI Encryption Key"
-  customer_master_key_spec = "SYMMETRIC_DEFAULT"
-
-  # Aliases
-  aliases                 = ["odin/ami-encryption-key"]
-  aliases_use_name_prefix = true
-
-  key_owners = local.me
-
-  # I'm hijacking this for spot instances.
-  key_service_roles_for_autoscaling = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot"]
-
-  tags = local.tags
-
-}
