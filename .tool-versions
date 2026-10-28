@@ -1,4 +1,4 @@
-checkov 3.3.26
+checkov 3.4.0
 jq 1.7.1
 opentofu 1.13.1
 pre-commit 4.7.0
